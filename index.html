@@ -89,7 +89,7 @@
             font-size: 20px;
             line-height: 1.8;
             color: #ffffff;
-            white-space: pre-line; /* Esto respeta los saltos de línea automáticamente */
+            white-space: pre-line;
         }
     </style>
 </head>
@@ -108,7 +108,7 @@
         <iframe id="reproductorClasico" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
 
-    <!-- Caja de letras estática (Muestra toda la letra de golpe, sin riesgo de trabarse) -->
+    <!-- Caja de letras estática -->
     <div class="lyrics-box">
         <div class="lyrics-text" id="textoLetra">Pega el enlace de la canción para ver su letra aquí...</div>
     </div>
@@ -139,15 +139,17 @@
         ¡Muchas felicidades en tu cumpleaños! 🎉`
     };
 
-    // Función directa para cortar el enlace sin importar el formato (Corregida)
+    // Función corregida con selectores de índice explícitos [1] y [0]
     function obtenerIdLimpio(url) {
         if (url.includes("youtu.be/")) {
-            let parte = url.split("youtu.be/")[1];
-            return parte.split("?")[0];
+            let parte = url.split("youtu.be/")[1]; 
+            let idLimpio = parte.split("?")[0];    
+            return idLimpio;
         }
         if (url.includes("v=")) {
-            let parte = url.split("v=")[1];
-            return parte.split("&")[0];
+            let parte = url.split("v=")[1];        
+            let idLimpio = parte.split("&")[0];    
+            return idLimpio;
         }
         return null;
     }
@@ -161,11 +163,11 @@
             return;
         }
 
-        // 1. CARGA DEL VIDEO CORREGIDA (Con la diagonal correcta)
+        // Cargamos el video usando la URL de incrustación de manera exacta
         const iframe = document.getElementById('reproductorClasico');
         iframe.src = "https://youtube.com" + idVideo;
 
-        // 2. Cargamos la letra correspondiente
+        // Cargamos la letra correspondiente de la base de datos
         const cajaTexto = document.getElementById('textoLetra');
         if (bibliotecaLetras[idVideo]) {
             cajaTexto.textContent = bibliotecaLetras[idVideo];
@@ -174,3 +176,5 @@
         }
     }
 </script>
+</body>
+</html>
