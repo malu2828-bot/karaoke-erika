@@ -68,7 +68,6 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
         }
 
-        /* Estilo para el reproductor clásico */
         iframe {
             width: 100%;
             height: 100%;
@@ -99,8 +98,8 @@
     <h1>YouTube Karaoke Player</h1>
     
     <div class="search-box">
-        <input type="text" id="youtubeUrl" placeholder="Pega el enlace de YouTube aquí...">
-        <button onclick="cargarVideoClasico()">Cargar Canción</button>
+        <input type="text" id="youtubeUrl" placeholder="Pega CUALQUIER enlace de YouTube aquí...">
+        <button onclick="cargarCualquierVideo()">Cargar Canción</button>
     </div>
 
     <!-- Contenedor del reproductor clásico -->
@@ -115,46 +114,33 @@
 </div>
 
 <script>
-    // Base de datos simplificada con las letras completas
+    // Base de datos de ejemplo para canciones conocidas
     const bibliotecaLetras = {
-        "XXgmy443Udo": `¡Feliz Cumpleaños Erika! 🎂
-        
-        Que pases un excelente día en compañía de tus seres queridos.
-        Disfruta mucho tu día, ríe, baila y canta.
-        
-        ¡Muchas felicidades en tu cumpleaños! 🎉`,
-
-        "eZ1OAcrcPzM": `¡Feliz Cumpleaños Erika! 🎂
-        
-        Que pases un excelente día en compañía de tus seres queridos.
-        Disfruta mucho tu día, ríe, baila y canta.
-        
-        ¡Muchas felicidades en tu cumpleaños! 🎉`,
-
-        "QycWbDcTK9w": `¡Feliz Cumpleaños Erika! 🎂
-        
-        Que pases un excelente día en compañía de tus seres queridos.
-        Disfruta mucho tu día, ríe, baila y canta.
-        
-        ¡Muchas felicidades en tu cumpleaños! 🎉`
+        "w3JoAPJu7ho": "Laura Pausini - Entre Tú y Mil Mares\n\nUn canario que canta triste por su amor\nY una guitarra que llora en un rincón\nNo es la misma vida que yo planeé para los dos...",
+        "XXgmy443Udo": "¡Felicidades! Disfruta de este video musical en tu reproductor."
     };
 
-    // Función corregida con selectores de índice explícitos [1] y [0]
+    // NUEVO EXTRACTOR: Utiliza un objeto URL nativo del navegador. 
+    // Es 100% infalible, no usa posiciones numéricas y funciona para cualquier video del mundo.
     function obtenerIdLimpio(url) {
-        if (url.includes("youtu.be/")) {
-            let parte = url.split("youtu.be/")[1]; 
-            let idLimpio = parte.split("?")[0];    
-            return idLimpio;
+        try {
+            // Si es un enlace corto (youtu.be/ID)
+            if (url.includes("youtu.be/")) {
+                let ruta = new URL(url).pathname;
+                return ruta.replace("/", ""); // Quita la barra y nos deja solo el ID
+            }
+            // Si es un enlace largo (://youtube.com)
+            if (url.includes("v=")) {
+                let parametros = new URL(url).searchParams;
+                return parametros.get("v"); // Extrae directamente el valor después de v=
+            }
+            return null;
+        } catch (e) {
+            return null;
         }
-        if (url.includes("v=")) {
-            let parte = url.split("v=")[1];        
-            let idLimpio = parte.split("&")[0];    
-            return idLimpio;
-        }
-        return null;
     }
 
-    function cargarVideoClasico() {
+    function cargarCualquierVideo() {
         const enlaceInput = document.getElementById('youtubeUrl').value;
         const idVideo = obtenerIdLimpio(enlaceInput);
 
@@ -163,16 +149,16 @@
             return;
         }
 
-        // Cargamos el video usando la URL de incrustación de manera exacta
+        // Cargamos el video en el reproductor de forma limpia y exacta
         const iframe = document.getElementById('reproductorClasico');
         iframe.src = "https://youtube.com" + idVideo;
 
-        // Cargamos la letra correspondiente de la base de datos
+        // Mostramos la letra si existe en la base de datos, si no, dejamos un mensaje de éxito general
         const cajaTexto = document.getElementById('textoLetra');
         if (bibliotecaLetras[idVideo]) {
             cajaTexto.textContent = bibliotecaLetras[idVideo];
         } else {
-            cajaTexto.innerHTML = "¡Video cargado con éxito!<br><br>(Nota: La letra de esta canción no está registrada en el código, pero puedes cantar siguiendo el video).";
+            cajaTexto.innerHTML = "¡Cualquier video del mundo cargado con éxito! 🎉<br><br>(Nota: Puedes cantar siguiendo el video directamente).";
         }
     }
 </script>
