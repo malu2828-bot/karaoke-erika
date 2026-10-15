@@ -146,11 +146,17 @@
     };
 
     // Extractor de ID limpio y mejorado de 11 caracteres
-    function extraerId(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+function extraerId(url) {
+    // Expresión regular estándar que separa el ID limpio de cualquier parámetro extra
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    
+    // Si encuentra el patrón, extraemos la posición [2] que contiene los 11 caracteres limpios
+    if (match && match[2].length === 11) {
+        return match[2];
     }
+    return null;
+}
 
     function procesarVideo() {
         const url = document.getElementById('youtubeUrl').value;
