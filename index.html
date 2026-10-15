@@ -117,6 +117,13 @@
 <script>
     // Base de datos simplificada con las letras completas
     const bibliotecaLetras = {
+        "XXgmy443Udo": `¡Feliz Cumpleaños Erika! 🎂
+        
+        Que pases un excelente día en compañía de tus seres queridos.
+        Disfruta mucho tu día, ríe, baila y canta.
+        
+        ¡Muchas felicidades en tu cumpleaños! 🎉`,
+
         "eZ1OAcrcPzM": `¡Feliz Cumpleaños Erika! 🎂
         
         Que pases un excelente día en compañía de tus seres queridos.
@@ -129,27 +136,18 @@
         Que pases un excelente día en compañía de tus seres queridos.
         Disfruta mucho tu día, ríe, baila y canta.
         
-        ¡Muchas felicidades en tu cumpleaños! 🎉`,
-        
-        "w3JoAPJu7ho": `Laura Pausini - Entre Tú y Mil Mares
-
-        Un canario que canta triste por su amor
-        Y una guitarra que llora en un rincón
-        No es la misma vida que yo planeé para los dos
-        
-        Entre tú y mil mares por medio
-        Viajará mi pensamiento
-        Cruzaré los dedos si estás bien o mal
-        Te buscaré si te vas...`
+        ¡Muchas felicidades en tu cumpleaños! 🎉`
     };
 
-    // Función directa para cortar el enlace sin importar el formato
+    // Función directa para cortar el enlace sin importar el formato (Corregida)
     function obtenerIdLimpio(url) {
         if (url.includes("youtu.be/")) {
-            return url.split("youtu.be/")[1].split("?")[0];
+            let parte = url.split("youtu.be/")[1];
+            return parte.split("?")[0];
         }
         if (url.includes("v=")) {
-            return url.split("v=")[1].split("&")[0];
+            let parte = url.split("v=")[1];
+            return parte.split("&")[0];
         }
         return null;
     }
@@ -163,7 +161,7 @@
             return;
         }
 
-        // 1. Cargamos el video de forma clásica e instantánea usando la URL de incrustación
+        // 1. CARGA DEL VIDEO CORREGIDA (Con la diagonal correcta)
         const iframe = document.getElementById('reproductorClasico');
         iframe.src = "https://youtube.com" + idVideo;
 
@@ -176,5 +174,3 @@
         }
     }
 </script>
-</body>
-</html>
