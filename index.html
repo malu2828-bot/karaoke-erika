@@ -38,6 +38,7 @@
             border-radius: 25px;
             font-size: 16px;
             outline: none;
+            color: #000;
         }
 
         button {
@@ -56,7 +57,6 @@
             background-color: #1ed760;
         }
 
-        /* Contenedor del reproductor corregido */
         .video-wrapper {
             width: 100%;
             max-width: 560px;
@@ -66,11 +66,10 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            position: relative;
         }
 
-        /* Estilo para que el reproductor ocupe todo el espacio */
-        #player {
+        /* Estilo para el reproductor clásico */
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
@@ -80,24 +79,17 @@
             background-color: #181818;
             padding: 30px;
             border-radius: 10px;
-            height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            scroll-behavior: smooth;
+            text-align: center;
         }
 
-        .lyric-line {
+        .lyrics-text {
             font-size: 20px;
-            margin: 15px 0;
-            color: #666;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-
-        .lyric-line.active {
+            line-height: 1.8;
             color: #ffffff;
-            font-size: 24px;
-            text-shadow: 0 0 10px #1DB954;
+            white-space: pre-line; /* Esto respeta los saltos de línea automáticamente */
         }
     </style>
 </head>
@@ -108,137 +100,79 @@
     
     <div class="search-box">
         <input type="text" id="youtubeUrl" placeholder="Pega el enlace de YouTube aquí...">
-        <button onclick="procesarVideo()">Cargar Canción</button>
+        <button onclick="cargarVideoClasico()">Cargar Canción</button>
     </div>
 
-    <!-- AQUÍ ESTÁ LA CORRECCIÓN: El contenedor con el ID correcto para la API -->
+    <!-- Contenedor del reproductor clásico -->
     <div class="video-wrapper">
-        <div id="player"></div>
+        <iframe id="reproductorClasico" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
 
-    <div class="lyrics-box" id="lyricsContainer">
-        <div id="lyricsContent">Pega un enlace válido para sincronizar la letra...</div>
+    <!-- Caja de letras estática (Muestra toda la letra de golpe, sin riesgo de trabarse) -->
+    <div class="lyrics-box">
+        <div class="lyrics-text" id="textoLetra">Pega el enlace de la canción para ver su letra aquí...</div>
     </div>
 </div>
 
-<!-- Cargamos la API de YouTube -->
-<script src="https://youtube.com"></script>
-
 <script>
-    let player;
-    let intervaloTiempo;
+    // Base de datos simplificada con las letras completas
+    const bibliotecaLetras = {
+        "eZ1OAcrcPzM": `¡Feliz Cumpleaños Erika! 🎂
+        
+        Que pases un excelente día en compañía de tus seres queridos.
+        Disfruta mucho tu día, ríe, baila y canta.
+        
+        ¡Muchas felicidades en tu cumpleaños! 🎉`,
 
-    // Base de datos de canciones sincronizadas
-    const bibliotecaKaraoke = {
-        "QycWbDcTK9w": [
-            { time: 0, text: "🎵 (Introducción de la canción de Erika) 🎵" },
-            { time: 5, text: "¡Feliz Cumpleaños Erika! 🎂" },
-            { time: 10, text: "Que pases un excelente día..." },
-            { time: 15, text: "🎵 ¡A cantar todos juntos! 🎵" }
-        ],
-        "w3JoAPJu7ho": [
-            { time: 0, text: "🎵 (Introducción Musical) 🎵" },
-            { time: 19, text: "Un canario que canta triste por su amor" },
-            { time: 24, text: "Y una guitarra que llora en un rincón" },
-            { time: 29, text: "No es la misma vida que yo planeé" },
-            { time: 33, text: "para los dos..." }
-        ]
+        "QycWbDcTK9w": `¡Feliz Cumpleaños Erika! 🎂
+        
+        Que pases un excelente día en compañía de tus seres queridos.
+        Disfruta mucho tu día, ríe, baila y canta.
+        
+        ¡Muchas felicidades en tu cumpleaños! 🎉`,
+        
+        "w3JoAPJu7ho": `Laura Pausini - Entre Tú y Mil Mares
+
+        Un canario que canta triste por su amor
+        Y una guitarra que llora en un rincón
+        No es la misma vida que yo planeé para los dos
+        
+        Entre tú y mil mares por medio
+        Viajará mi pensamiento
+        Cruzaré los dedos si estás bien o mal
+        Te buscaré si te vas...`
     };
 
-    // Extractor de ID limpio y mejorado de 11 caracteres
-function extraerId(url) {
-    // 1. Si el enlace es del formato corto (youtu.be/)
-    if (url.includes("youtu.be/")) {
-        let parteDespuesDeDiagonal = url.split("youtu.be/")[1];
-        // Quitamos los parámetros extras que empiezan con el signo ?
-        let idLimpio = parteDespuesDeDiagonal.split("?")[0];
-        return idLimpio;
+    // Función directa para cortar el enlace sin importar el formato
+    function obtenerIdLimpio(url) {
+        if (url.includes("youtu.be/")) {
+            return url.split("youtu.be/")[1].split("?")[0];
+        }
+        if (url.includes("v=")) {
+            return url.split("v=")[1].split("&")[0];
+        }
+        return null;
     }
-    
-    // 2. Si el enlace es del formato largo convencional (://youtube.com)
-    if (url.includes("v=")) {
-        let parteDespuesDeV = url.split("v=")[1];
-        let idLimpio = parteDespuesDeV.split("&")[0];
-        return idLimpio;
-    }
-    
-    return null;
-}
 
-    function procesarVideo() {
-        const url = document.getElementById('youtubeUrl').value;
-        const id = extraerId(url);
+    function cargarVideoClasico() {
+        const enlaceInput = document.getElementById('youtubeUrl').value;
+        const idVideo = obtenerIdLimpio(enlaceInput);
 
-        if (!id) {
+        if (!idVideo) {
             alert("Por favor, ingresa un enlace válido de YouTube.");
             return;
         }
 
-        // Reiniciar reproductor si ya existía uno activo
-        if (player && typeof player.destroy === 'function') {
-            player.destroy();
-            clearInterval(intervaloTiempo);
-        }
+        // 1. Cargamos el video de forma clásica e instantánea usando la URL de incrustación
+        const iframe = document.getElementById('reproductorClasico');
+        iframe.src = "https://youtube.com" + idVideo;
 
-        // Crear el reproductor oficial inyectando los datos en el div #player
-        player = new YT.Player('player', {
-            videoId: id,
-            events: {
-                'onStateChange': alCambiarEstado
-            }
-        });
-
-        montarLetra(id);
-    }
-
-    function montarLetra(id) {
-        const container = document.getElementById('lyricsContent');
-        container.innerHTML = "";
-
-        if (bibliotecaKaraoke[id]) {
-            bibliotecaKaraoke[id].forEach((linea, index) => {
-                const div = document.createElement('div');
-                div.className = "lyric-line";
-                div.id = `line-${index}`;
-                div.textContent = linea.text;
-                container.appendChild(div);
-            });
+        // 2. Cargamos la letra correspondiente
+        const cajaTexto = document.getElementById('textoLetra');
+        if (bibliotecaLetras[idVideo]) {
+            cajaTexto.textContent = bibliotecaLetras[idVideo];
         } else {
-            container.innerHTML = "Video cargado con éxito.<br><br>Nota: La letra específica para este ID no está registrada en el código, pero el video comenzará a reproducirse.";
-        }
-    }
-
-    function alCambiarEstado(event) {
-        if (event.data === YT.PlayerState.PLAYING) {
-            intervaloTiempo = setInterval(actualizarKaraoke, 200);
-        } else {
-            clearInterval(intervaloTiempo);
-        }
-    }
-
-    function actualizarKaraoke() {
-        const url = document.getElementById('youtubeUrl').value;
-        const id = extraerId(url);
-        
-        if (!id || !bibliotecaKaraoke[id]) return;
-
-        const tiempoActual = player.getCurrentTime();
-        const lineas = bibliotecaKaraoke[id];
-        let lineaActivaIndex = -1;
-
-        for (let i = 0; i < lineas.length; i++) {
-            if (tiempoActual >= lineas[i].time) {
-                lineaActivaIndex = i;
-            }
-        }
-
-        if (lineaActivaIndex !== -1) {
-            document.querySelectorAll('.lyric-line').forEach(el => el.classList.remove('active'));
-            const lineaActivaElemento = document.getElementById(`line-${lineaActivaIndex}`);
-            if (lineaActivaElemento) {
-                lineaActivaElemento.classList.add('active');
-                lineaActivaElemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            cajaTexto.innerHTML = "¡Video cargado con éxito!<br><br>(Nota: La letra de esta canción no está registrada en el código, pero puedes cantar siguiendo el video).";
         }
     }
 </script>
